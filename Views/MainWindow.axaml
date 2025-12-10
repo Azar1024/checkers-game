@@ -1,0 +1,61 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:CheckersGame.ViewModels"
+        x:Class="checkers_game.Views.MainWindow"
+        x:DataType="vm:GameViewModel"
+        Title="Русские шашки"
+        Width="560" Height="620"
+        Icon="avares://CheckersGame/Assets/icon.ico">
+
+    <Window.Background>
+        <ImageBrush Source="avares://CheckersGame/Assets/background.jpg"
+                    Stretch="UniformToFill"/>
+    </Window.Background>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="{Binding Status}"
+                   FontSize="20"
+                   Foreground="Black"
+                   HorizontalAlignment="Center"
+                   Margin="0,0,0,15"/>
+
+        <!-- Стартовый экран -->
+        <Viewbox Grid.Row="1"
+                 Stretch="Uniform"
+                 IsVisible="{Binding IsStartScreen}">
+            <StackPanel Spacing="20" Orientation="Vertical">
+                <TextBlock Text="Русские шашки"
+                           FontSize="25"
+                           Foreground="Black"
+                           HorizontalAlignment="Center"/>
+                <Button Width="300" Height="40"
+                        Content="Человек vs Человек"
+                        Command="{Binding StartHumanVsHumanCommand}"
+                        Foreground="Black"/>
+                <Button Width="300" Height="40"
+                        Content="Человек vs ИИ"
+                        Command="{Binding StartHumanVsAICommand}"
+                        Foreground="Black"/>
+                <Button Width="300" Height="40"
+                        Content="Выход"
+                        Command="{Binding ExitCommand}"
+                        Foreground="Black"/>
+            </StackPanel>
+        </Viewbox>
+
+        <!-- Заглушка для игрового поля (пока пусто) -->
+        <TextBlock Grid.Row="1"
+                   Text="{Binding Status}"
+                   FontSize="30"
+                   Foreground="White"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   IsVisible="{Binding IsStartScreen, Converter={x:Static BoolConverters.Invert}}"/>
+    </Grid>
+</Window>
