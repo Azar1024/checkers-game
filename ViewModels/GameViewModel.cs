@@ -86,33 +86,8 @@ public partial class GameViewModel : ObservableObject
 
     private bool IsLegal(Move m)
     {
-        // Проверка базового хода (не захват)
-        if (m.IsCapture) return false; // Пока не реализовано
-
-        var piece = _board[m.FromRow, m.FromCol];
-        if (piece?.Owner != CurrentPlayer) return false;
-
-        // Проверка на пустую клетку
-        if (_board[m.ToRow, m.ToCol] != null) return false;
-
-        // Проверка направления и дистанции для обычной шашки
-        if (!piece.IsKing)
-        {
-            int dr = m.ToRow - m.FromRow;
-            int dc = Math.Abs(m.ToCol - m.FromCol);
-
-            if (dc != 1) return false; // Только диагональ на 1
-
-            if (piece.IsWhite && dr == -1) return true; // Белые вверх
-            if (!piece.IsWhite && dr == 1) return true; // Чёрные вниз
-            return false;
-        }
-        else // Для дамки
-        {
-            int dr = Math.Abs(m.ToRow - m.FromRow);
-            int dc = Math.Abs(m.ToCol - m.FromCol);
-            return dr == 1 && dc == 1; // Диагональ на 1
-        }
+        var legal = _board.GetLegalMoves(m.FromRow, m.FromCol, CurrentPlayer);
+        return legal.Any(l => l.Equals(m));
     }
 
     private void SwitchPlayer()
