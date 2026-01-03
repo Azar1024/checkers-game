@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Avalonia.Styling;
 
 namespace checkers_game.ViewModels;
 
@@ -67,9 +66,15 @@ public partial class GameViewModel : ObservableObject
         if (Selected is { } sel)
         {
             var move = new Move(sel.row, sel.col, row, col);
-            // Логика выполнения хода будет в следующем коммите
-            Selected = null;
-            return;
+            if (IsLegal(move))
+            {
+                _board.Execute(move);
+                RefreshGrid();
+                Selected = null;
+                SwitchPlayer();
+                CheckGameEnd();
+                return;
+            }
         }
 
         var piece = _board[row, col];
@@ -77,5 +82,54 @@ public partial class GameViewModel : ObservableObject
             Selected = (row, col);
         else
             Selected = null;
+    }
+
+    private bool IsLegal(Move m)
+    {
+        // Проверка базового хода (не захват)
+        if (m.IsCapture) return false; // Пока не реализовано
+
+        var piece = _board[m.FromRow, m.FromCol];
+        if (piece?.Owner != CurrentPlayer) return false;
+
+        // Проверка на пустую клетку
+        if (_board[m.ToRow, m.ToCol] != null) return false;
+
+        // Проверка направления и дистанции для обычной шашки
+        if (!piece.IsKing)
+        {
+            int dr = m.ToRow - m.FromRow;
+            int dc = Math.Abs(m.ToCol - m.FromCol);
+
+            if (dc != 1) return false; // Только диагональ на 1
+
+            if (piece.IsWhite && dr == -1) return true; // Белые вверх
+            if (!piece.IsWhite && dr == 1) return true; // Чёрные вниз
+            return false;
+        }
+        else // Для дамки
+        {
+            int dr = Math.Abs(m.ToRow - m.FromRow);
+            int dc = Math.Abs(m.ToCol - m.FromCol);
+            return dr == 1 && dc == 1; // Диагональ на 1
+        }
+    }
+
+    private void SwitchPlayer()
+    {
+        CurrentPlayer = CurrentPlayer == Player.White ? Player.Black : Player.White;
+        Status = $"Ход {(CurrentPlayer == Player.White ? "белых" : "чёрных")}";
+    }
+
+    private void RefreshGrid()
+    {
+        for (int r = 0; r < Board.Size; r++)
+            for (int c = 0; c < Board.Size; c++)
+                _grid[r * Board.Size + c].Piece = _board[r, c];
+    }
+
+    private void CheckGameEnd()
+    {
+        // Заглушка
     }
 }

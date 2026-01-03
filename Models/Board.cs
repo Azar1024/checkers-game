@@ -25,4 +25,17 @@ public class Board
         get => _grid[row, col];
         private set => _grid[row, col] = value;
     }
+
+    public void Execute(Move move)
+    {
+        var piece = this[move.FromRow, move.FromCol];
+        this[move.FromRow, move.FromCol] = null;
+        this[move.ToRow, move.ToCol] = piece;
+
+        // Превращение в дамку
+        if (piece?.Owner == Player.White && move.ToRow == 0)
+            this[move.ToRow, move.ToCol] = piece with { Type = PieceType.King };
+        if (piece?.Owner == Player.Black && move.ToRow == Size - 1)
+            this[move.ToRow, move.ToCol] = piece with { Type = PieceType.King };
+    }
 }
