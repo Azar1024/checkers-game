@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace checkers-game.Models
+namespace checkers_game.Models;
+
+public record Move(int FromRow, int FromCol, int ToRow, int ToCol)
 {
-    internal class Move
-{
-}
+    public bool IsCapture => Math.Abs(ToRow - FromRow) == 2;
 }

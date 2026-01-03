@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace checkers_game.Models;
 
-namespace checkers-game.Models
+public enum Player { White, Black }
+public enum PieceType { Regular, King }
+
+public record Piece(Player Owner, PieceType Type)
 {
-    internal class Piece
-{
-}
+    public bool IsWhite => Owner == Player.White;
+    public bool IsKing => Type == PieceType.King;
 }
