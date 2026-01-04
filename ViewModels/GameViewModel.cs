@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// ViewModels/GameViewModel.cs
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using checkers_game.Models;
 using System;
@@ -68,11 +69,7 @@ public partial class GameViewModel : ObservableObject
             var move = new Move(sel.row, sel.col, row, col);
             if (IsLegal(move))
             {
-                _board.Execute(move);
-                RefreshGrid();
-                Selected = null;
-                SwitchPlayer();
-                CheckGameEnd();
+                ExecuteMove(move);
                 return;
             }
         }
@@ -82,6 +79,15 @@ public partial class GameViewModel : ObservableObject
             Selected = (row, col);
         else
             Selected = null;
+    }
+
+    private void ExecuteMove(Move move)
+    {
+        _board.Execute(move);
+        RefreshGrid();
+        Selected = null;
+        SwitchPlayer();
+        CheckGameEnd();
     }
 
     private bool IsLegal(Move m)
