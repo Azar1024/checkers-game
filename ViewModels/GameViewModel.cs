@@ -1,5 +1,4 @@
-﻿// ViewModels/GameViewModel.cs
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using checkers_game.Models;
 using System;
@@ -111,6 +110,21 @@ public partial class GameViewModel : ObservableObject
 
     private void CheckGameEnd()
     {
-        // Заглушка
+        bool whiteHasMoves = HasAnyMove(Player.White);
+        bool blackHasMoves = HasAnyMove(Player.Black);
+
+        if (!whiteHasMoves && !blackHasMoves) Status = "Ничья!";
+        else if (CurrentPlayer == Player.White && !whiteHasMoves) Status = "Победа чёрных!";
+        else if (CurrentPlayer == Player.Black && !blackHasMoves) Status = "Победа белых!";
+    }
+
+    private bool HasAnyMove(Player p)
+    {
+        for (int r = 0; r < Board.Size; r++)
+            for (int c = 0; c < Board.Size; c++)
+                if (_board[r, c]?.Owner == p)
+                    if (_board.GetLegalMoves(r, c, p).Any())
+                        return true;
+        return false;
     }
 }
