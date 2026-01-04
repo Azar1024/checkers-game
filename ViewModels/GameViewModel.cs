@@ -57,7 +57,7 @@ public partial class GameViewModel : ObservableObject
         Selected = null;
     }
 
-    private void OnCellClick(CellViewModel? cellVm)
+    private async void OnCellClick(CellViewModel? cellVm)
     {
         if (cellVm == null || IsStartScreen) return;
         int row = cellVm.Row;
@@ -68,7 +68,16 @@ public partial class GameViewModel : ObservableObject
             var move = new Move(sel.row, sel.col, row, col);
             if (IsLegal(move))
             {
-                ExecuteMove(move);
+                _board.Execute(move);
+                RefreshGrid();
+                Selected = null;
+                SwitchPlayer();
+                CheckGameEnd();
+                if (!IsStartScreen && GameMode == GameMode.HumanVsAI && CurrentPlayer == Player.Black)
+                {
+                    await Task.Delay(300);
+                    MakeAIMove();
+                }
                 return;
             }
         }
@@ -80,13 +89,37 @@ public partial class GameViewModel : ObservableObject
             Selected = null;
     }
 
-    private void ExecuteMove(Move move)
+    private void MakeAIMove()
     {
-        _board.Execute(move);
-        RefreshGrid();
-        Selected = null;
-        SwitchPlayer();
-        CheckGameEnd();
+        var bestMove = GetBestMove(Player.Black, depth: 2);
+        if (bestMove != null)
+        {
+            _board.Execute(bestMove);
+            RefreshGrid();
+            SwitchPlayer();
+            CheckGameEnd();
+        }
+    }
+
+    private Move? GetBestMove(Player aiPlayer, int depth)
+    {
+        var moves = GetAllLegalMoves(aiPlayer).ToList();
+        if (!moves.Any()) return null;
+
+        var random = new Random();
+        var captureMoves = moves.Where(m => m.IsCapture).ToList();
+        var candidates = captureMoves.Any() ? captureMoves : moves;
+
+        return candidates[random.Next(candidates.Count)];
+    }
+
+    private IEnumerable<Move> GetAllLegalMoves(Player player)
+    {
+        for (int r = 0; r < Board.Size; r++)
+            for (int c = 0; c < Board.Size; c++)
+                if (_board[r, c]?.Owner == player)
+                    foreach (var move in _board.GetLegalMoves(r, c, player))
+                        yield return move;
     }
 
     private bool IsLegal(Move m)
@@ -120,11 +153,6 @@ public partial class GameViewModel : ObservableObject
 
     private bool HasAnyMove(Player p)
     {
-        for (int r = 0; r < Board.Size; r++)
-            for (int c = 0; c < Board.Size; c++)
-                if (_board[r, c]?.Owner == p)
-                    if (_board.GetLegalMoves(r, c, p).Any())
-                        return true;
-        return false;
+        return GetAllLegalMoves(p).Any();
     }
 }
