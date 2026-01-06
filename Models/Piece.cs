@@ -1,8 +1,10 @@
-ï»¿namespace CheckersGame.Models;
+namespace CheckersGame.Models;
 
-public enum Player { White, Black }
-public enum PieceType { Regular, King }
+//  ÎÑÍÎÂÍÛÅ ÒÈÏÛ ØÀØÅÊ 
+public enum Player { White, Black }           // Âëàäåëåö øàøêè
+public enum PieceType { Regular, King }       // Òèï øàøêè
 
+//  ÍÅÈÇÌÅÍßÅÌÀß ÑÒÐÓÊÒÓÐÀ ØÀØÊÈ 
 public record Piece(Player Owner, PieceType Type)
 {
     public bool IsWhite => Owner == Player.White;

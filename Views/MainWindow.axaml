@@ -1,12 +1,12 @@
-<Window xmlns="https://github.com/avaloniaui "
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CheckersGame.ViewModels"
         xmlns:models="using:CheckersGame.Models"
         x:Class="CheckersGame.Views.MainWindow"
         x:DataType="vm:GameViewModel"
         Title="Русские шашки"
-        Width="560" Height="620">
-
+        Width="560" Height="620"
+        Icon="avares://CheckersGame/Assets/icon.ico">
     <Window.Resources>
         <vm:IsNotNullConverter x:Key="IsNotNullConverter" />
         <vm:IsFalseConverter x:Key="IsFalseConverter" />
@@ -14,97 +14,125 @@
         <vm:SelectedCellHighlightConverter x:Key="SelectedCellHighlightConverter" />
         <vm:OccupiedAndNotWhiteConverter x:Key="OccupiedAndNotWhiteConverter" />
     </Window.Resources>
-
-    <DockPanel Margin="20">
-        <TextBlock DockPanel.Dock="Top"
+    <Window.Background>
+        <ImageBrush Source="avares://CheckersGame/Assets/background.jpg"
+                    Stretch="UniformToFill" />
+    </Window.Background>
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0"
                    Text="{Binding Status}"
                    FontSize="20"
+                   Foreground="Black"
                    HorizontalAlignment="Center"
                    Margin="0,0,0,15"/>
-
         <!-- Стартовый экран -->
-        <StackPanel DockPanel.Dock="Top"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Spacing="20"
-                    IsVisible="{Binding IsStartScreen}">
-            <TextBlock Text="Русские шашки"
-                       FontSize="28"
-                       HorizontalAlignment="Center"/>
-            <Button Content="Человек vs Человек"
-                    Command="{Binding StartHumanVsHumanCommand}"
-                    Width="200" Height="50" FontSize="16"/>
-            <Button Content="Человек vs ИИ"
-                    Command="{Binding StartHumanVsAICommand}"
-                    Width="200" Height="50" FontSize="16"/>
-        </StackPanel>
-
-        <!-- Доска (скрыта на старте) -->
-        <ItemsControl ItemsSource="{Binding Grid}"
-                      HorizontalAlignment="Center"
-                      Width="480" Height="480"
-                      IsVisible="{Binding IsStartScreen, Converter={StaticResource IsFalseConverter}}">
-
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Rows="8" Columns="8"/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-
-            <ItemsControl.ItemTemplate>
-                <DataTemplate x:CompileBindings="False">
-                    <Button Width="60" Height="60"
-                            Command="{Binding $parent[Window].DataContext.CellCommand}"
-                            CommandParameter="{Binding}">
-                        <Button.Background>
-                            <MultiBinding Converter="{StaticResource CellBackgroundConverter}">
-                                <Binding Path="Row" Mode="OneTime" />
-                                <Binding Path="Col" Mode="OneTime" />
-                            </MultiBinding>
-                        </Button.Background>
-
-                        <Panel>
-                            <Ellipse Width="48" Height="48"
-                                     Fill="#FFF"
-                                     Stroke="#333" StrokeThickness="2"
-                                     IsVisible="{Binding IsOccupied, Mode=OneWay}"/>
-
-                            <Ellipse Width="48" Height="48"
-                                     Fill="#222"
-                                     Stroke="#EEE" StrokeThickness="2">
-                                <Ellipse.IsVisible>
-                                    <MultiBinding Converter="{StaticResource OccupiedAndNotWhiteConverter}">
-                                        <Binding Path="IsOccupied" Mode="OneWay" />
-                                        <Binding Path="IsWhite" Mode="OneWay" />
-                                    </MultiBinding>
-                                </Ellipse.IsVisible>
-                            </Ellipse>
-
-                            <Path Data="M12,4 L18,10 L12,16 L6,10 Z"
-                                  Fill="Gold"
-                                  Stretch="Uniform"
-                                  Width="20" Height="20"
-                                  HorizontalAlignment="Center"
-                                  VerticalAlignment="Center"
-                                  IsVisible="{Binding IsKing, Mode=OneWay}"/>
-                        </Panel>
-
-                        <Button.Styles>
-                            <Style Selector="Button">
-                                <Setter Property="Background">
-                                    <Setter.Value>
-                                        <MultiBinding Converter="{StaticResource SelectedCellHighlightConverter}">
-                                            <Binding Path="$parent[Window].DataContext.Selected" Mode="OneWay" />
-                                            <Binding Path="Row" Mode="OneWay" />
-                                            <Binding Path="Col" Mode="OneWay" />
+        <Viewbox Grid.Row="1"
+                 Stretch="Uniform"
+                 IsVisible="{Binding IsStartScreen}">
+            <StackPanel Spacing="20"
+                        Orientation="Vertical">
+                <TextBlock Text="Русские шашки"
+                           FontSize="25"
+                           Foreground="Black"
+                           HorizontalAlignment="Center"/>
+                <Button Width="300" Height="30"
+                        FontSize="15"
+                        Content="Человек vs Человек"
+                        Command="{Binding StartHumanVsHumanCommand}"
+                        Foreground="Black" />
+                <Button Width="300" Height="30"
+                        FontSize="15"
+                        Content="Человек vs ИИ"
+                        Command="{Binding StartHumanVsAICommand}"
+                        Foreground="Black" />
+                <Button Width="300" Height="30"
+                        FontSize="15"
+                        Content="Выход"
+                        Command="{Binding ExitCommand}"
+                        Foreground="Black" />
+            </StackPanel>
+        </Viewbox>
+        <!-- Экран после окончания игры -->
+        <Viewbox Grid.Row="1"
+                 Stretch="Uniform"
+                 IsVisible="{Binding IsGameOver}">
+            <StackPanel Spacing="20"
+                        Orientation="Vertical">
+                <Button Width="300" Height="40"
+                        FontSize="15"
+                        Content="Вернуться в главное меню"
+                        Command="{Binding ReturnToMenuCommand}"
+                        Foreground="Black" />
+            </StackPanel>
+        </Viewbox>
+        <!-- Доска (скрыта на старте и при окончании игры) -->
+        <Viewbox Grid.Row="1"
+                 Stretch="Uniform"
+                 IsVisible="{Binding IsStartScreen, Converter={StaticResource IsFalseConverter}, FallbackValue=False}">
+            <ItemsControl ItemsSource="{Binding Grid}"
+                          Width="480"
+                          Height="480"
+                          IsVisible="{Binding IsGameOver, Converter={StaticResource IsFalseConverter}}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="8" Columns="8"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:CompileBindings="False">
+                        <Button Width="60" Height="60"
+                                Command="{Binding $parent[Window].DataContext.CellCommand}"
+                                CommandParameter="{Binding}">
+                            <Button.Background>
+                                <MultiBinding Converter="{StaticResource CellBackgroundConverter}">
+                                    <Binding Path="Row" Mode="OneTime" />
+                                    <Binding Path="Col" Mode="OneTime" />
+                                </MultiBinding>
+                            </Button.Background>
+                            <Panel>
+                                <Ellipse Width="48" Height="48"
+                                         Fill="#FFF"
+                                         Stroke="#333" StrokeThickness="2"
+                                         IsVisible="{Binding IsOccupied, Mode=OneWay}"/>
+                                <Ellipse Width="48" Height="48"
+                                         Fill="#222"
+                                         Stroke="#EEE" StrokeThickness="2">
+                                    <Ellipse.IsVisible>
+                                        <MultiBinding Converter="{StaticResource OccupiedAndNotWhiteConverter}">
+                                            <Binding Path="IsOccupied" Mode="OneWay" />
+                                            <Binding Path="IsWhite" Mode="OneWay" />
                                         </MultiBinding>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Button.Styles>
-                    </Button>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </DockPanel>
+                                    </Ellipse.IsVisible>
+                                </Ellipse>
+                                <Path Data="M12,4 L18,10 L12,16 L6,10 Z"
+                                      Fill="Gold"
+                                      Stretch="Uniform"
+                                      Width="20" Height="20"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      IsVisible="{Binding IsKing, Mode=OneWay}"/>
+                            </Panel>
+                            <Button.Styles>
+                                <Style Selector="Button">
+                                    <Setter Property="Background">
+                                        <Setter.Value>
+                                            <MultiBinding Converter="{StaticResource SelectedCellHighlightConverter}">
+                                                <Binding Path="DataContext.Selected" RelativeSource="{RelativeSource AncestorType=ItemsControl}" Mode="OneWay" />
+                                                <Binding Path="Row" Mode="OneWay" />
+                                                <Binding Path="Col" Mode="OneWay" />
+                                            </MultiBinding>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </Button.Styles>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Viewbox>
+    </Grid>
 </Window>

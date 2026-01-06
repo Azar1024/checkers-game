@@ -6,6 +6,7 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- Включаем генерацию -->
     <EnableSourceGeneration>true</EnableSourceGeneration>
   </PropertyGroup>
 
@@ -17,6 +18,7 @@
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.8" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.8" />
+    <!-- Обновляем до 11.3.8 -->
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.8" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.8" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.8" />
@@ -24,6 +26,7 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">all</PrivateAssets>
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <!-- Обновляем до 8.3.0 -->
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.0" />
   </ItemGroup>
 </Project>
