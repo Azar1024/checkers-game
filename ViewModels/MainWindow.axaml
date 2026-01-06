@@ -34,10 +34,22 @@
                        HorizontalAlignment="Center"/>
             <Button Content="Человек vs Человек"
                     Command="{Binding StartHumanVsHumanCommand}"
-                    Width="200" Height="50" FontSize="16"/>
+                    Width="220" Height="60" FontSize="16">
+                <Button.Styles>
+                    <Style Selector="Button:pointerover">
+                        <Setter Property="Background" Value="LightBlue" />
+                    </Style>
+                </Button.Styles>
+            </Button>
             <Button Content="Человек vs ИИ"
                     Command="{Binding StartHumanVsAICommand}"
-                    Width="200" Height="50" FontSize="16"/>
+                    Width="220" Height="60" FontSize="16">
+                <Button.Styles>
+                    <Style Selector="Button:pointerover">
+                        <Setter Property="Background" Value="LightBlue" />
+                    </Style>
+                </Button.Styles>
+            </Button>
         </StackPanel>
 
         <!-- Доска (скрыта на старте) -->
