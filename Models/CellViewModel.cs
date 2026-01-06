@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using checkers_game.Models;
+using CheckersGame.Models;
 
-namespace checkers_game.Models;
+namespace CheckersGame.Models;
 
 public class CellViewModel : ObservableObject
 {
@@ -16,7 +16,7 @@ public class CellViewModel : ObservableObject
                 OnPropertyChanged(nameof(IsOccupied));
                 OnPropertyChanged(nameof(IsWhite));
                 OnPropertyChanged(nameof(IsKing));
-                OnPropertyChanged(nameof(IsBlack));
+                OnPropertyChanged(nameof(IsBlack)); // важно уведомлять и об этом свойстве
             }
         }
     }
@@ -27,6 +27,7 @@ public class CellViewModel : ObservableObject
     public bool IsOccupied => Piece != null;
     public bool IsWhite => Piece?.IsWhite == true;
     public bool IsKing => Piece?.IsKing == true;
+    // Новое безопасное свойство: true только если есть шашка и она чёрная
     public bool IsBlack => Piece != null && Piece.IsWhite == false;
 
     public CellViewModel(Piece? piece, int row, int col)

@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using CheckersGame.Models;
+using System.Collections.Generic;
 using System.Linq;
 
-namespace checkers_game.Models;
+namespace CheckersGame.Models;
 
 public class Board
 {

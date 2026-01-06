@@ -1,4 +1,4 @@
-﻿namespace checkers_game.Models;
+﻿namespace CheckersGame.Models;
 
 public enum GameMode
 {

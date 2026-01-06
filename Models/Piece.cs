@@ -1,4 +1,4 @@
-﻿namespace checkers_game.Models;
+﻿namespace CheckersGame.Models;
 
 public enum Player { White, Black }
 public enum PieceType { Regular, King }

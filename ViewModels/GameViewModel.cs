@@ -1,25 +1,27 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using checkers_game.Models;
+using CheckersGame.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace checkers_game.ViewModels;
+namespace CheckersGame.ViewModels;
 
 public partial class GameViewModel : ObservableObject
 {
-    private readonly Board _board = new();
+    // УБРАН readonly — нужно пересоздавать доску при новой игре
+    private Board _board;
+
     [ObservableProperty] private Player _currentPlayer = Player.White;
     [ObservableProperty] private (int row, int col)? _selected;
     [ObservableProperty] private string _status = "Выберите режим";
     [ObservableProperty] private GameMode _gameMode;
     [ObservableProperty] private bool _isStartScreen = true;
 
-    private readonly IReadOnlyList<CellViewModel> _grid;
-
+    // Grid — mutable поле
+    private IReadOnlyList<CellViewModel> _grid;
     public IReadOnlyList<CellViewModel> Grid => _grid;
 
     public ICommand CellCommand { get; }
@@ -29,37 +31,43 @@ public partial class GameViewModel : ObservableObject
     public GameViewModel()
     {
         // Инициализация при запуске
-        _grid = CreateInitialGrid();
+        _board = new Board();
+        CreateGrid();
+
         CellCommand = new RelayCommand<CellViewModel>(OnCellClick);
         StartHumanVsHumanCommand = new RelayCommand(() => StartGame(GameMode.HumanVsHuman));
         StartHumanVsAICommand = new RelayCommand(() => StartGame(GameMode.HumanVsAI));
-    }
-
-    private IReadOnlyList<CellViewModel> CreateInitialGrid()
-    {
-        var newGrid = new List<CellViewModel>();
-        for (int r = 0; r < Board.Size; r++)
-        {
-            for (int c = 0; c < Board.Size; c++)
-            {
-                newGrid.Add(new CellViewModel(_board[r, c], r, c));
-            }
-        }
-        return newGrid.AsReadOnly();
     }
 
     private void StartGame(GameMode mode)
     {
         GameMode = mode;
         IsStartScreen = false;
+
+        // Пересоздаём доску и Grid
+        _board = new Board();  // Теперь можно — не readonly
+        CreateGrid();
+
         CurrentPlayer = Player.White;
         Status = "Ход белых";
         Selected = null;
     }
 
+    private void CreateGrid()
+    {
+        var newGrid = Enumerable.Range(0, Board.Size)
+            .SelectMany(r => Enumerable.Range(0, Board.Size)
+                .Select(c => new CellViewModel(_board[r, c], r, c)))
+            .ToArray();
+
+        _grid = newGrid;
+        OnPropertyChanged(nameof(Grid)); // Уведомляем UI
+    }
+
     private async void OnCellClick(CellViewModel? cellVm)
     {
         if (cellVm == null || IsStartScreen) return;
+
         int row = cellVm.Row;
         int col = cellVm.Col;
 
@@ -73,6 +81,7 @@ public partial class GameViewModel : ObservableObject
                 Selected = null;
                 SwitchPlayer();
                 CheckGameEnd();
+
                 if (!IsStartScreen && GameMode == GameMode.HumanVsAI && CurrentPlayer == Player.Black)
                 {
                     await Task.Delay(300);
@@ -109,7 +118,6 @@ public partial class GameViewModel : ObservableObject
         var random = new Random();
         var captureMoves = moves.Where(m => m.IsCapture).ToList();
         var candidates = captureMoves.Any() ? captureMoves : moves;
-
         return candidates[random.Next(candidates.Count)];
     }
 
