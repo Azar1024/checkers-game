@@ -1,12 +1,12 @@
 using Avalonia.Controls;
+using CheckersGame.ViewModels;
 
-namespace checkers_game.Views;
-
+namespace CheckersGame.Views;
 public partial class MainWindow : Window
 {
     public MainWindow()
     {
         InitializeComponent();
-        DataContext = new ViewModels.GameViewModel();
+        DataContext = new GameViewModel();
     }
 }

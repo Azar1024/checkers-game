@@ -1,20 +1,20 @@
 ﻿using Avalonia;
 using Avalonia.ReactiveUI;
 using System;
+using System.Threading;
 
-namespace checkers_game;
-
-internal sealed class Program
+namespace CheckersGame
 {
-    [STAThread]
-    public static void Main(string[] args) =>
-        BuildAvaloniaApp()
-            .StartWithClassicDesktopLifetime(args);
+    internal sealed class Program
+    {
+        [STAThread]
+        public static void Main(string[] args) => BuildAvaloniaApp()
+          .StartWithClassicDesktopLifetime(args);
 
-    public static AppBuilder BuildAvaloniaApp() =>
-        AppBuilder.Configure<App>()
+        public static AppBuilder BuildAvaloniaApp() =>
+          AppBuilder.Configure<App>()
             .UsePlatformDetect()
-            .WithInterFont()
-            .LogToTrace()
+             .LogToTrace()
             .UseReactiveUI();
+    }
 }
