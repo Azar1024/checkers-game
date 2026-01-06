@@ -1,0 +1,7 @@
+# Avalonia
+*.csproj.user
+/obj/
+/bin/
+/.vs/
+/app/bin/
+/app/obj/
