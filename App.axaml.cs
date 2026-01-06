@@ -9,11 +9,12 @@ using System.Linq;
 
 namespace CheckersGame
 {
+    //  ОСНОВНОЙ КЛАСС ПРИЛОЖЕНИЯ AVALONIA 
     public partial class App : Application
     {
         public override void Initialize()
         {
-            AvaloniaXamlLoader.Load(this); // ��������� XAML-�������
+            AvaloniaXamlLoader.Load(this); // Загружаем XAML-ресурсы
         }
 
         public override void OnFrameworkInitializationCompleted()
@@ -22,7 +23,7 @@ namespace CheckersGame
             {
                 DisableAvaloniaDataAnnotationValidation();
 
-                desktop.MainWindow = new MainWindow();
+                desktop.MainWindow = new MainWindow(); 
             }
             base.OnFrameworkInitializationCompleted();
         }
