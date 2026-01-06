@@ -20,6 +20,9 @@ public partial class GameViewModel : ObservableObject
     [ObservableProperty] private GameMode _gameMode;
     [ObservableProperty] private bool _isStartScreen = true;
     [ObservableProperty] private bool _isAnimatingStart = false;
+    [ObservableProperty] private int _whiteCaptured = 0;
+    [ObservableProperty] private int _blackCaptured = 0;
+    [ObservableProperty] private int _moveCount = 0;
 
     // Grid — mutable поле
     private IReadOnlyList<CellViewModel> _grid;
@@ -28,6 +31,7 @@ public partial class GameViewModel : ObservableObject
     public ICommand CellCommand { get; }
     public ICommand StartHumanVsHumanCommand { get; }
     public ICommand StartHumanVsAICommand { get; }
+    public ICommand RestartCommand { get; }
 
     public GameViewModel()
     {
@@ -38,6 +42,7 @@ public partial class GameViewModel : ObservableObject
         CellCommand = new RelayCommand<CellViewModel>(OnCellClick);
         StartHumanVsHumanCommand = new RelayCommand(() => StartGame(GameMode.HumanVsHuman));
         StartHumanVsAICommand = new RelayCommand(() => StartGame(GameMode.HumanVsAI));
+        RestartCommand = new RelayCommand(() => StartGame(GameMode));
     }
 
     private async void StartGame(GameMode mode)
@@ -55,6 +60,9 @@ public partial class GameViewModel : ObservableObject
         CurrentPlayer = Player.White;
         Status = "Ход белых";
         Selected = null;
+        _whiteCaptured = 0;
+        _blackCaptured = 0;
+        _moveCount = 0;
     }
 
     private void CreateGrid()
@@ -81,6 +89,12 @@ public partial class GameViewModel : ObservableObject
             if (IsLegal(move))
             {
                 _board.Execute(move);
+                if (move.IsCapture)
+                {
+                    if (CurrentPlayer == Player.White) _blackCaptured++;
+                    else _whiteCaptured++;
+                }
+                _moveCount++;
                 RefreshGrid();
                 Selected = null;
                 SwitchPlayer();
@@ -108,6 +122,12 @@ public partial class GameViewModel : ObservableObject
         if (bestMove != null)
         {
             _board.Execute(bestMove);
+            if (bestMove.IsCapture)
+            {
+                if (CurrentPlayer == Player.White) _blackCaptured++;
+                else _whiteCaptured++;
+            }
+            _moveCount++;
             RefreshGrid();
             SwitchPlayer();
             CheckGameEnd();
@@ -158,9 +178,9 @@ public partial class GameViewModel : ObservableObject
         bool whiteHasMoves = HasAnyMove(Player.White);
         bool blackHasMoves = HasAnyMove(Player.Black);
 
-        if (!whiteHasMoves && !blackHasMoves) Status = "Ничья!";
-        else if (CurrentPlayer == Player.White && !whiteHasMoves) Status = "Победа чёрных!";
-        else if (CurrentPlayer == Player.Black && !blackHasMoves) Status = "Победа белых!";
+        if (!whiteHasMoves && !blackHasMoves) Status = $"Ничья! Ходов: {_moveCount}, Съедено белых: {_whiteCaptured}, Съедено чёрных: {_blackCaptured}";
+        else if (CurrentPlayer == Player.White && !whiteHasMoves) Status = $"Победа чёрных! Ходов: {_moveCount}, Съедено белых: {_whiteCaptured}, Съедено чёрных: {_blackCaptured}";
+        else if (CurrentPlayer == Player.Black && !blackHasMoves) Status = $"Победа белых! Ходов: {_moveCount}, Съедено белых: {_whiteCaptured}, Съедено чёрных: {_blackCaptured}";
     }
 
     private bool HasAnyMove(Player p)

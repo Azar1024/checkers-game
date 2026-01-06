@@ -14,6 +14,7 @@
         <vm:SelectedCellHighlightConverter x:Key="SelectedCellHighlightConverter" />
         <vm:OccupiedAndNotWhiteConverter x:Key="OccupiedAndNotWhiteConverter" />
         <vm:IsKingVisibleConverter x:Key="IsKingVisibleConverter" />
+        <vm:IsGameOverConverter x:Key="IsGameOverConverter" />
     </Window.Resources>
 
     <DockPanel Margin="20">
@@ -50,6 +51,19 @@
                     </Style>
                 </Button.Styles>
             </Button>
+        </StackPanel>
+
+        <!-- End-game экран -->
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="20"
+                    IsVisible="{Binding Status, Converter={StaticResource IsGameOverConverter}}">
+            <TextBlock Text="{Binding Status}"
+                       FontSize="28"
+                       HorizontalAlignment="Center"/>
+            <Button Content="Новая игра"
+                    Command="{Binding RestartCommand}"
+                    Width="200" Height="50" FontSize="16"/>
         </StackPanel>
 
         <!-- Доска (скрыта на старте) -->
