@@ -13,6 +13,7 @@
         <vm:CellBackgroundConverter x:Key="CellBackgroundConverter" />
         <vm:SelectedCellHighlightConverter x:Key="SelectedCellHighlightConverter" />
         <vm:OccupiedAndNotWhiteConverter x:Key="OccupiedAndNotWhiteConverter" />
+        <vm:IsKingVisibleConverter x:Key="IsKingVisibleConverter" />
     </Window.Resources>
 
     <DockPanel Margin="20">
@@ -86,7 +87,7 @@
                                   Width="20" Height="20"
                                   HorizontalAlignment="Center"
                                   VerticalAlignment="Center"
-                                  IsVisible="{Binding IsKing, Mode=OneWay}"/>
+                                  IsVisible="{Binding IsKing, Converter={StaticResource IsKingVisibleConverter}, Mode=OneWay}"/>
                         </Panel>
 
                         <Button.Styles>

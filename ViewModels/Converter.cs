@@ -89,9 +89,20 @@ public class OccupiedAndNotWhiteConverter : IMultiValueConverter
     public object Convert(IList<object> values, Type targetType, object parameter, CultureInfo culture)
     {
         if (values.Count >= 2 && values[0] is bool isOccupied && values[1] is bool isWhite)
-            return isOccupied && !isWhite;
+            return isOccupied && !isWhite && (parameter as string != "hidden");
         return false;
     }
     public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+public class IsKingVisibleConverter : IValueConverter
+{
+    public static readonly IsKingVisibleConverter Instance = new();
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        => value is bool b && b;
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
