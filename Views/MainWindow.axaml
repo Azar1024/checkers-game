@@ -1,61 +1,149 @@
-<Window xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui "
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CheckersGame.ViewModels"
-        x:Class="checkers_game.Views.MainWindow"
+        xmlns:models="using:CheckersGame.Models"
+        x:Class="CheckersGame.Views.MainWindow"
         x:DataType="vm:GameViewModel"
-        Title="Ðóññêèå øàøêè"
-        Width="560" Height="620"
-        Icon="avares://CheckersGame/Assets/icon.ico">
+        Title="Ð ÑƒÑÑÐºÐ¸Ðµ ÑˆÐ°ÑˆÐºÐ¸"
+        Width="560" Height="620">
 
-    <Window.Background>
-        <ImageBrush Source="avares://CheckersGame/Assets/background.jpg"
-                    Stretch="UniformToFill"/>
-    </Window.Background>
+    <Window.Resources>
+        <vm:IsNotNullConverter x:Key="IsNotNullConverter" />
+        <vm:IsFalseConverter x:Key="IsFalseConverter" />
+        <vm:CellBackgroundConverter x:Key="CellBackgroundConverter" />
+        <vm:SelectedCellHighlightConverter x:Key="SelectedCellHighlightConverter" />
+        <vm:OccupiedAndNotWhiteConverter x:Key="OccupiedAndNotWhiteConverter" />
+        <vm:IsKingVisibleConverter x:Key="IsKingVisibleConverter" />
+        <vm:IsGameOverConverter x:Key="IsGameOverConverter" />
+        <vm:CaptureEffectConverter x:Key="CaptureEffectConverter" />
+    </Window.Resources>
 
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-
-        <TextBlock Grid.Row="0"
+    <DockPanel Margin="20">
+        <TextBlock DockPanel.Dock="Top"
                    Text="{Binding Status}"
                    FontSize="20"
-                   Foreground="Black"
                    HorizontalAlignment="Center"
                    Margin="0,0,0,15"/>
 
-        <!-- Ñòàðòîâûé ýêðàí -->
-        <Viewbox Grid.Row="1"
-                 Stretch="Uniform"
-                 IsVisible="{Binding IsStartScreen}">
-            <StackPanel Spacing="20" Orientation="Vertical">
-                <TextBlock Text="Ðóññêèå øàøêè"
-                           FontSize="25"
-                           Foreground="Black"
-                           HorizontalAlignment="Center"/>
-                <Button Width="300" Height="40"
-                        Content="×åëîâåê vs ×åëîâåê"
-                        Command="{Binding StartHumanVsHumanCommand}"
-                        Foreground="Black"/>
-                <Button Width="300" Height="40"
-                        Content="×åëîâåê vs ÈÈ"
-                        Command="{Binding StartHumanVsAICommand}"
-                        Foreground="Black"/>
-                <Button Width="300" Height="40"
-                        Content="Âûõîä"
-                        Command="{Binding ExitCommand}"
-                        Foreground="Black"/>
-            </StackPanel>
-        </Viewbox>
+        <!-- Ð¡Ñ‚Ð°Ñ€Ñ‚Ð¾Ð²Ñ‹Ð¹ ÑÐºÑ€Ð°Ð½ -->
+        <StackPanel DockPanel.Dock="Top"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="20"
+                    IsVisible="{Binding IsStartScreen}">
+            <TextBlock Text="Ð ÑƒÑÑÐºÐ¸Ðµ ÑˆÐ°ÑˆÐºÐ¸"
+                       FontSize="28"
+                       HorizontalAlignment="Center"/>
+            <Button Content="Ð§ÐµÐ»Ð¾Ð²ÐµÐº vs Ð§ÐµÐ»Ð¾Ð²ÐµÐº"
+                    Command="{Binding StartHumanVsHumanCommand}"
+                    Width="220" Height="60" FontSize="16">
+                <Button.Styles>
+                    <Style Selector="Button:pointerover">
+                        <Setter Property="Background" Value="LightBlue" />
+                    </Style>
+                </Button.Styles>
+            </Button>
+            <Button Content="Ð§ÐµÐ»Ð¾Ð²ÐµÐº vs Ð˜Ð˜"
+                    Command="{Binding StartHumanVsAICommand}"
+                    Width="220" Height="60" FontSize="16">
+                <Button.Styles>
+                    <Style Selector="Button:pointerover">
+                        <Setter Property="Background" Value="LightBlue" />
+                    </Style>
+                </Button.Styles>
+            </Button>
+        </StackPanel>
 
-        <!-- Çàãëóøêà äëÿ èãðîâîãî ïîëÿ (ïîêà ïóñòî) -->
-        <TextBlock Grid.Row="1"
-                   Text="{Binding Status}"
-                   FontSize="30"
-                   Foreground="White"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   IsVisible="{Binding IsStartScreen, Converter={x:Static BoolConverters.Invert}}"/>
-    </Grid>
+        <!-- End-game ÑÐºÑ€Ð°Ð½ -->
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="20"
+                    IsVisible="{Binding Status, Converter={StaticResource IsGameOverConverter}}">
+            <TextBlock Text="{Binding Status}"
+                       FontSize="28"
+                       HorizontalAlignment="Center"/>
+            <Button Content="ÐÐ¾Ð²Ð°Ñ Ð¸Ð³Ñ€Ð°"
+                    Command="{Binding RestartCommand}"
+                    Width="200" Height="50" FontSize="16"/>
+        </StackPanel>
+
+        <!-- Ð”Ð¾ÑÐºÐ° (ÑÐºÑ€Ñ‹Ñ‚Ð° Ð½Ð° ÑÑ‚Ð°Ñ€Ñ‚Ðµ) -->
+        <ItemsControl ItemsSource="{Binding Grid}"
+                      HorizontalAlignment="Center"
+                      Width="480" Height="480"
+                      IsVisible="{Binding IsStartScreen, Converter={StaticResource IsFalseConverter}}">
+
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="8" Columns="8"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:CompileBindings="False">
+                    <Button Width="60" Height="60"
+                            Command="{Binding $parent[Window].DataContext.CellCommand}"
+                            CommandParameter="{Binding}"
+                            PointerPressed="{Binding $parent[Window].DataContext.DragStartCommand, CommandParameter={Binding}}">
+                        <Button.Background>
+                            <MultiBinding Converter="{StaticResource CellBackgroundConverter}">
+                                <Binding Path="Row" Mode="OneTime" />
+                                <Binding Path="Col" Mode="OneTime" />
+                            </MultiBinding>
+                        </Button.Background>
+
+                        <Panel>
+                            <Ellipse Width="48" Height="48"
+                                     Fill="#FFF"
+                                     Stroke="#333" StrokeThickness="2"
+                                     IsVisible="{Binding IsOccupied, Mode=OneWay}"
+                                     Opacity="{Binding IsOccupied, Converter={StaticResource CaptureEffectConverter}}"/>
+
+                            <Ellipse Width="48" Height="48"
+                                     Fill="#222"
+                                     Stroke="#EEE" StrokeThickness="2">
+                                <Ellipse.IsVisible>
+                                    <MultiBinding Converter="{StaticResource OccupiedAndNotWhiteConverter}">
+                                        <Binding Path="IsOccupied" Mode="OneWay" />
+                                        <Binding Path="IsWhite" Mode="OneWay" />
+                                    </MultiBinding>
+                                </Ellipse.IsVisible>
+                                <Ellipse.Opacity>
+                                    <Binding Path="IsOccupied" Converter="{StaticResource CaptureEffectConverter}" />
+                                </Ellipse.Opacity>
+                            </Ellipse>
+
+                            <Path Data="M12,4 L18,10 L12,16 L6,10 Z"
+                                  Fill="Gold"
+                                  Stretch="Uniform"
+                                  Width="20" Height="20"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  IsVisible="{Binding IsKing, Converter={StaticResource IsKingVisibleConverter}, Mode=OneWay}"/>
+                        </Panel>
+
+                        <Button.Styles>
+                            <Style Selector="Button">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <MultiBinding Converter="{StaticResource SelectedCellHighlightConverter}">
+                                            <Binding Path="$parent[Window].DataContext.Selected" Mode="OneWay" />
+                                            <Binding Path="Row" Mode="OneWay" />
+                                            <Binding Path="Col" Mode="OneWay" />
+                                        </MultiBinding>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="Opacity" Value="1.0" />
+                            </Style>
+                        </Button.Styles>
+                        <Button.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
+                            </Transitions>
+                        </Button.Transitions>
+                    </Button>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </DockPanel>
 </Window>
