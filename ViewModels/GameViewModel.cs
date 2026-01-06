@@ -32,6 +32,7 @@ public partial class GameViewModel : ObservableObject
     public ICommand StartHumanVsHumanCommand { get; }
     public ICommand StartHumanVsAICommand { get; }
     public ICommand RestartCommand { get; }
+    public ICommand DragStartCommand { get; }
 
     public GameViewModel()
     {
@@ -43,6 +44,16 @@ public partial class GameViewModel : ObservableObject
         StartHumanVsHumanCommand = new RelayCommand(() => StartGame(GameMode.HumanVsHuman));
         StartHumanVsAICommand = new RelayCommand(() => StartGame(GameMode.HumanVsAI));
         RestartCommand = new RelayCommand(() => StartGame(GameMode));
+        DragStartCommand = new RelayCommand<CellViewModel>(OnDragStart);
+    }
+
+    private void OnDragStart(CellViewModel? cell)
+    {
+        // Placeholder for drag logic
+        if (cell != null)
+        {
+            Selected = (cell.Row, cell.Col);
+        }
     }
 
     private async void StartGame(GameMode mode)

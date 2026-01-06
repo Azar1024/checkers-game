@@ -106,3 +106,17 @@ public class IsKingVisibleConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+
+public class CaptureEffectConverter : IValueConverter
+{
+    public static readonly CaptureEffectConverter Instance = new();
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        // Placeholder: return 0.0 if captured, else 1.0
+        return value is bool b && b ? 1.0 : 0.0;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}

@@ -15,6 +15,7 @@
         <vm:OccupiedAndNotWhiteConverter x:Key="OccupiedAndNotWhiteConverter" />
         <vm:IsKingVisibleConverter x:Key="IsKingVisibleConverter" />
         <vm:IsGameOverConverter x:Key="IsGameOverConverter" />
+        <vm:CaptureEffectConverter x:Key="CaptureEffectConverter" />
     </Window.Resources>
 
     <DockPanel Margin="20">
@@ -82,7 +83,8 @@
                 <DataTemplate x:CompileBindings="False">
                     <Button Width="60" Height="60"
                             Command="{Binding $parent[Window].DataContext.CellCommand}"
-                            CommandParameter="{Binding}">
+                            CommandParameter="{Binding}"
+                            PointerPressed="{Binding $parent[Window].DataContext.DragStartCommand, CommandParameter={Binding}}">
                         <Button.Background>
                             <MultiBinding Converter="{StaticResource CellBackgroundConverter}">
                                 <Binding Path="Row" Mode="OneTime" />
@@ -94,7 +96,8 @@
                             <Ellipse Width="48" Height="48"
                                      Fill="#FFF"
                                      Stroke="#333" StrokeThickness="2"
-                                     IsVisible="{Binding IsOccupied, Mode=OneWay}"/>
+                                     IsVisible="{Binding IsOccupied, Mode=OneWay}"
+                                     Opacity="{Binding IsOccupied, Converter={StaticResource CaptureEffectConverter}}"/>
 
                             <Ellipse Width="48" Height="48"
                                      Fill="#222"
@@ -105,6 +108,9 @@
                                         <Binding Path="IsWhite" Mode="OneWay" />
                                     </MultiBinding>
                                 </Ellipse.IsVisible>
+                                <Ellipse.Opacity>
+                                    <Binding Path="IsOccupied" Converter="{StaticResource CaptureEffectConverter}" />
+                                </Ellipse.Opacity>
                             </Ellipse>
 
                             <Path Data="M12,4 L18,10 L12,16 L6,10 Z"
@@ -130,6 +136,11 @@
                                 <Setter Property="Opacity" Value="1.0" />
                             </Style>
                         </Button.Styles>
+                        <Button.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
+                            </Transitions>
+                        </Button.Transitions>
                     </Button>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
