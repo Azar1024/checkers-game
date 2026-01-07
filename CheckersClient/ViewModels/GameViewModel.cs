@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CheckersGame.Models;
+using CheckersGame.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,8 @@ public partial class GameViewModel : ObservableObject
 {
     //  ОСНОВНЫЕ МОДЕЛИ ДАННЫХ 
     private Board _board;
+    private OnlineGameClient? _onlineClient;
+    private bool _isOnlineGameActive = false; // Блокировка до начала матча
 
     [ObservableProperty]
     private Player _currentPlayer = Player.White;
@@ -52,6 +55,7 @@ public partial class GameViewModel : ObservableObject
     public ICommand CellCommand { get; }
     public ICommand StartHumanVsHumanCommand { get; }
     public ICommand StartHumanVsAICommand { get; }
+    public ICommand StartOnlineGameCommand { get; }
     public ICommand ReturnToMenuCommand { get; }
     public ICommand ExitCommand { get; }
 
@@ -65,6 +69,7 @@ public partial class GameViewModel : ObservableObject
         CellCommand = new RelayCommand<CellViewModel>(OnCellClick);
         StartHumanVsHumanCommand = new RelayCommand(() => StartGame(GameMode.HumanVsHuman));
         StartHumanVsAICommand = new RelayCommand(() => StartGame(GameMode.HumanVsAI));
+        StartOnlineGameCommand = new RelayCommand(StartOnlineGame);
         ReturnToMenuCommand = new RelayCommand(ReturnToMenu);
         ExitCommand = new RelayCommand(ExitApp);
     }
@@ -75,7 +80,8 @@ public partial class GameViewModel : ObservableObject
         GameMode = mode;
         IsStartScreen = false;
         IsGameOver = false;
-
+        _onlineClient = null;
+        
         //  ПЕРЕЗАПУСК ИГРОВОГО СОСТОЯНИЯ 
         _board = new Board();
         _chainPiece = null; // Сброс цепочки взятий
@@ -85,11 +91,66 @@ public partial class GameViewModel : ObservableObject
         Selected = null;
     }
 
+    private async void StartOnlineGame()
+    {
+        GameMode = GameMode.Online;
+        IsStartScreen = false;
+        IsGameOver = false;
+        
+        _board = new Board();
+        _chainPiece = null;
+        CreateGrid();
+        CurrentPlayer = Player.White;
+        Selected = null;
+
+        Status = "Подключение к серверу...";
+        _isOnlineGameActive = false; // Блокируем ходы
+        _onlineClient = new OnlineGameClient();
+
+        _onlineClient.OnWaiting += (id) =>
+        {
+            Dispatcher.UIThread.Invoke(() => Status = $"Ожидание соперника... (ID: {id})");
+        };
+
+        _onlineClient.OnGameStarted += () =>
+        {
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                _isOnlineGameActive = true; // Разблокируем игру
+                var colorName = _onlineClient.MyColor == Player.White ? "Белыми" : "Чёрными";
+                Status = $"Игра началась! Вы играете {colorName}.";
+                CurrentPlayer = Player.White; // Белые всегда ходят первыми
+            });
+        };
+
+        _onlineClient.OnMoveReceived += (move) =>
+        {
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                _board.Execute(move);
+                RefreshGrid();
+                FinishTurn();
+                if (!IsGameOver) Status = "Ваш ход!";
+            });
+        };
+
+        try
+        {
+            await _onlineClient.ConnectAsync();
+            await _onlineClient.FindGame();
+        }
+        catch (Exception ex)
+        {
+            Status = $"Ошибка: {ex.Message}";
+        }
+    }
+
     private void ReturnToMenu()
     {
         IsStartScreen = true;
         IsGameOver = false;
         Status = "Выберите режим";
+        _onlineClient = null;
     }
 
     //  ВЫХОД ИЗ ПРИЛОЖЕНИЯ 
@@ -120,6 +181,15 @@ public partial class GameViewModel : ObservableObject
         //  БЛОКИРОВКА ХОДОВ ЧЕЛОВЕКА ПО ВРЕМЕНИ ДУМАНИЯ ИИ 
         if (GameMode == GameMode.HumanVsAI && CurrentPlayer == Player.Black) return;
 
+        // Блокировка для Онлайн режима
+        if (GameMode == GameMode.Online)
+        {
+            // Не даем ходить, пока не подключится второй игрок
+            if (!_isOnlineGameActive) return;
+            // Не даем ходить, если не наш цвет или не наша очередь
+            if (_onlineClient == null || CurrentPlayer != _onlineClient.MyColor) return;
+        }
+
         int row = cellVm.Row;
         int col = cellVm.Col;
 
@@ -134,6 +204,12 @@ public partial class GameViewModel : ObservableObject
                 //  ВЫПОЛНЯЕМ ЛЕГАЛЬНЫЙ ХОД 
                 _board.Execute(realMove);
                 RefreshGrid();
+
+                // Отправка хода на сервер
+                if (GameMode == GameMode.Online && _onlineClient != null)
+                {
+                    await _onlineClient.SendMove(realMove);
+                }
 
                 //  ЛОГИКА МНОЖЕСТВЕННОГО ВЗЯТИЯ 
                 // Ключевой момент русских шашек: если можно продолжить бить - продолжаем!
@@ -190,7 +266,7 @@ public partial class GameViewModel : ObservableObject
         //  АВТОХОД ИИ ПОСЛЕ ХОДА ЧЕЛОВЕКА 
         if (!IsGameOver && GameMode == GameMode.HumanVsAI && CurrentPlayer == Player.Black)
         {
-            await Task.Delay(3000);
+            await Task.Delay(300);
             await MakeAIMove(); 
         }
     }
@@ -220,7 +296,7 @@ public partial class GameViewModel : ObservableObject
                 if (move.IsCapture && CanCaptureMore(move.ToRow, move.ToCol))
                 {
                     _chainPiece = (move.ToRow, move.ToCol);
-                    await Task.Delay(1000);
+                    await Task.Delay(400);
                 }
                 else
                 {

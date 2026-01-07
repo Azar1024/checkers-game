@@ -51,6 +51,11 @@
                         Foreground="Black" />
                 <Button Width="300" Height="30"
                         FontSize="15"
+                        Content="Играть Онлайн"
+                        Command="{Binding StartOnlineGameCommand}"
+                        Foreground="Black" />
+                <Button Width="300" Height="30"
+                        FontSize="15"
                         Content="Выход"
                         Command="{Binding ExitCommand}"
                         Foreground="Black" />
