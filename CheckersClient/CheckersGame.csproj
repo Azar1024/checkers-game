@@ -28,5 +28,6 @@
     </PackageReference>
     <!-- Обновляем до 8.3.0 -->
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.1" />
   </ItemGroup>
 </Project>
