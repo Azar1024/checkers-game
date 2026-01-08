@@ -4,6 +4,7 @@ using CheckersGame.Models;
 using CheckersGame.Services;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -35,6 +36,21 @@ public partial class GameViewModel : ObservableObject
     [ObservableProperty]
     private bool _isStartScreen = true;
 
+    // Свойства для Лобби
+    [ObservableProperty]
+    private bool _isLobbyScreen = false;
+
+    [ObservableProperty]
+    private string _lobbyStatus = "Подключение...";
+
+    [ObservableProperty]
+    private string _joinGameId = "";
+
+    [ObservableProperty]
+    private bool _isCreatingPrivate = false;
+
+    public ObservableCollection<GameRoomDto> Lobbies { get; } = new();
+
     //  СОСТОЯНИЕ КОНЦА ИГРЫ 
     private bool _isGameOver;
     public bool IsGameOver
@@ -55,7 +71,15 @@ public partial class GameViewModel : ObservableObject
     public ICommand CellCommand { get; }
     public ICommand StartHumanVsHumanCommand { get; }
     public ICommand StartHumanVsAICommand { get; }
-    public ICommand StartOnlineGameCommand { get; }
+    
+    // Команды онлайна
+    public ICommand StartOnlineGameCommand { get; } // Теперь открывает лобби
+    public ICommand OpenOnlineLobbyCommand { get; }
+    public ICommand CreateGameCommand { get; }
+    public ICommand JoinGameCommand { get; }
+    public ICommand JoinSelectedGameCommand { get; }
+    public ICommand RefreshLobbiesCommand { get; }
+
     public ICommand ReturnToMenuCommand { get; }
     public ICommand ExitCommand { get; }
 
@@ -69,57 +93,117 @@ public partial class GameViewModel : ObservableObject
         CellCommand = new RelayCommand<CellViewModel>(OnCellClick);
         StartHumanVsHumanCommand = new RelayCommand(() => StartGame(GameMode.HumanVsHuman));
         StartHumanVsAICommand = new RelayCommand(() => StartGame(GameMode.HumanVsAI));
-        StartOnlineGameCommand = new RelayCommand(StartOnlineGame);
+        
+        // Настройка команд лобби
+        OpenOnlineLobbyCommand = new RelayCommand(OpenOnlineLobby);
+        StartOnlineGameCommand = new RelayCommand(OpenOnlineLobby); // Кнопка меню теперь ведет в лобби
+        CreateGameCommand = new RelayCommand(CreateOnlineGame);
+        JoinGameCommand = new RelayCommand(() => JoinOnlineGame(JoinGameId));
+        JoinSelectedGameCommand = new RelayCommand<string>(JoinOnlineGame);
+        RefreshLobbiesCommand = new RelayCommand(RequestLobbies);
+
         ReturnToMenuCommand = new RelayCommand(ReturnToMenu);
         ExitCommand = new RelayCommand(ExitApp);
     }
 
-    //  СТАРТ НОВОЙ ИГРЫ 
+    //  СТАРТ НОВОЙ ЛОКАЛЬНОЙ ИГРЫ 
     private void StartGame(GameMode mode)
     {
         GameMode = mode;
         IsStartScreen = false;
+        IsLobbyScreen = false;
         IsGameOver = false;
         _onlineClient = null;
         
         //  ПЕРЕЗАПУСК ИГРОВОГО СОСТОЯНИЯ 
-        _board = new Board();
-        _chainPiece = null; // Сброс цепочки взятий
-        CreateGrid();
-        CurrentPlayer = Player.White;
-        Status = "Ход белых";
-        Selected = null;
+        StartNewBoard();
     }
 
-    private async void StartOnlineGame()
+    private void StartNewBoard()
     {
-        GameMode = GameMode.Online;
-        IsStartScreen = false;
-        IsGameOver = false;
-        
         _board = new Board();
         _chainPiece = null;
         CreateGrid();
         CurrentPlayer = Player.White;
         Selected = null;
+        if (GameMode != GameMode.Online) Status = "Ход белых";
+    }
 
-        Status = "Подключение к серверу...";
-        _isOnlineGameActive = false; // Блокируем ходы
+    // --- ЛОГИКА ЛОББИ ---
+
+    private async void OpenOnlineLobby()
+    {
+        IsStartScreen = false;
+        IsLobbyScreen = true;
+        IsGameOver = false;
+        LobbyStatus = "Подключение к серверу...";
+        Lobbies.Clear();
+
         _onlineClient = new OnlineGameClient();
+        SetupOnlineEvents();
+
+        try
+        {
+            await _onlineClient.ConnectAsync();
+            LobbyStatus = "Сервер доступен. Выберите или создайте игру.";
+            await _onlineClient.RequestLobbyListAsync();
+        }
+        catch (Exception ex)
+        {
+            LobbyStatus = $"Ошибка подключения: {ex.Message}";
+        }
+    }
+
+    private void SetupOnlineEvents()
+    {
+        if (_onlineClient == null) return;
+
+        _onlineClient.OnLobbyListUpdated += (list) =>
+        {
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                Lobbies.Clear();
+                foreach (var item in list) Lobbies.Add(item);
+            });
+        };
+
+        _onlineClient.OnError += (msg) =>
+        {
+            Dispatcher.UIThread.Invoke(() => LobbyStatus = $"Ошибка: {msg}");
+        };
 
         _onlineClient.OnWaiting += (id) =>
         {
-            Dispatcher.UIThread.Invoke(() => Status = $"Ожидание соперника... (ID: {id})");
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                LobbyStatus = $"Игра создана. ID: {id}. Ожидание соперника...";
+            });
+        };
+
+        _onlineClient.OnOpponentDisconnected += () =>
+        {
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                Status = "Соперник отключился. Победа!";
+                IsGameOver = true;
+                _isOnlineGameActive = false;
+            });
         };
 
         _onlineClient.OnGameStarted += () =>
         {
             Dispatcher.UIThread.Invoke(() =>
             {
-                _isOnlineGameActive = true; // Разблокируем игру
+                IsLobbyScreen = false;
+                IsGameOver = false;
+                _isOnlineGameActive = true;
+                GameMode = GameMode.Online;
+
+                StartNewBoard();
+
                 var colorName = _onlineClient.MyColor == Player.White ? "Белыми" : "Чёрными";
                 Status = $"Игра началась! Вы играете {colorName}.";
-                CurrentPlayer = Player.White; // Белые всегда ходят первыми
+                CurrentPlayer = Player.White;
             });
         };
 
@@ -133,21 +217,33 @@ public partial class GameViewModel : ObservableObject
                 if (!IsGameOver) Status = "Ваш ход!";
             });
         };
-
-        try
-        {
-            await _onlineClient.ConnectAsync();
-            await _onlineClient.FindGame();
-        }
-        catch (Exception ex)
-        {
-            Status = $"Ошибка: {ex.Message}";
-        }
     }
+
+    private async void CreateOnlineGame()
+    {
+        if (_onlineClient == null) return;
+        LobbyStatus = "Создание комнаты...";
+        await _onlineClient.CreateGameAsync(IsCreatingPrivate);
+    }
+
+    private async void JoinOnlineGame(string? gameId)
+    {
+        if (string.IsNullOrWhiteSpace(gameId) || _onlineClient == null) return;
+        LobbyStatus = $"Подключение к {gameId}...";
+        await _onlineClient.JoinGameAsync(gameId);
+    }
+
+    private async void RequestLobbies()
+    {
+        if (_onlineClient != null) await _onlineClient.RequestLobbyListAsync();
+    }
+
+    // --- КОНЕЦ ЛОГИКИ ЛОББИ ---
 
     private void ReturnToMenu()
     {
         IsStartScreen = true;
+        IsLobbyScreen = false;
         IsGameOver = false;
         Status = "Выберите режим";
         _onlineClient = null;
@@ -176,7 +272,8 @@ public partial class GameViewModel : ObservableObject
     //  ОБРАБОТЧИК КЛИКА ПО КЛЕТКЕ - ОСНОВНАЯ ЛОГИКА ИГРЫ 
     private async void OnCellClick(CellViewModel? cellVm)
     {
-        if (cellVm == null || IsStartScreen || IsGameOver) return;
+        // Добавлена проверка IsLobbyScreen
+        if (cellVm == null || IsStartScreen || IsLobbyScreen || IsGameOver) return;
 
         //  БЛОКИРОВКА ХОДОВ ЧЕЛОВЕКА ПО ВРЕМЕНИ ДУМАНИЯ ИИ 
         if (GameMode == GameMode.HumanVsAI && CurrentPlayer == Player.Black) return;
@@ -323,7 +420,6 @@ public partial class GameViewModel : ObservableObject
         var random = new Random();
         var captureMoves = moves.Where(m => m.IsCapture).ToList();
 
-        //  ПРИОРИТЕТ ВЗЯТИЯМ (УЖЕ УЧТЕН В GetAllLegalMoves, НО ДЛЯ НАДЕЖНОСТИ) 
         var candidates = captureMoves.Any() ? captureMoves : moves;
         return candidates[random.Next(candidates.Count)];
     }
@@ -381,9 +477,6 @@ public partial class GameViewModel : ObservableObject
     //  ПРОВЕРКА УСЛОВИЙ ОКОНЧАНИЯ ИГРЫ 
     private void CheckGameEnd()
     {
-        // Важно сбросить _chainPiece перед проверкой, чтобы посчитать все ходы
-        // Но здесь мы вызываем CheckGameEnd только при смене хода, так что _chainPiece уже null
-
         bool whiteHasMoves = HasAnyMove(Player.White);
         bool blackHasMoves = HasAnyMove(Player.Black);
 
