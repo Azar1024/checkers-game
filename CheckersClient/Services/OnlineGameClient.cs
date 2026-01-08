@@ -20,10 +20,10 @@ public class OnlineGameClient
     public event Action<string>? OnError;
     public event Action? OnOpponentDisconnected;
 
-    public async Task ConnectAsync()
+    public async Task ConnectAsync(string ipAddress)
     {
         _hubConnection = new HubConnectionBuilder()
-            .WithUrl("http://localhost:5000/gamehub") 
+            .WithUrl($"http://{ipAddress}:5000/gamehub") 
             .WithAutomaticReconnect()
             .Build();
 

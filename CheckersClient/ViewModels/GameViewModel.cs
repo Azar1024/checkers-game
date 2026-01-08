@@ -49,6 +49,10 @@ public partial class GameViewModel : ObservableObject
     [ObservableProperty]
     private bool _isCreatingPrivate = false;
 
+    // Свойство для IP адреса сервера (по умолчанию localhost)
+    [ObservableProperty]
+    private string _serverIp = "localhost";
+
     // Новое свойство — видимость окна с правилами
     [ObservableProperty]
     private bool _isRulesVisible = false;
@@ -151,7 +155,7 @@ public partial class GameViewModel : ObservableObject
         IsStartScreen = false;
         IsLobbyScreen = true;
         IsGameOver = false;
-        LobbyStatus = "Подключение к серверу...";
+        LobbyStatus = $"Подключение к {ServerIp}...";
         Lobbies.Clear();
 
         _onlineClient = new OnlineGameClient();
@@ -159,7 +163,7 @@ public partial class GameViewModel : ObservableObject
 
         try
         {
-            await _onlineClient.ConnectAsync();
+            await _onlineClient.ConnectAsync(ServerIp);
             LobbyStatus = "Сервер доступен. Выберите или создайте игру.";
             await _onlineClient.RequestLobbyListAsync();
         }
