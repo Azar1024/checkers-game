@@ -10,6 +10,7 @@
     <Window.Resources>
         <vm:IsNotNullConverter x:Key="IsNotNullConverter" />
         <vm:IsFalseConverter x:Key="IsFalseConverter" />
+       
         <vm:CellBackgroundConverter x:Key="CellBackgroundConverter" />
         <vm:SelectedCellHighlightConverter x:Key="SelectedCellHighlightConverter" />
         <vm:OccupiedAndNotWhiteConverter x:Key="OccupiedAndNotWhiteConverter" />
@@ -37,6 +38,12 @@
                 <TextBlock Text="Русские шашки" FontSize="25" Foreground="Black" HorizontalAlignment="Center"/>
                 <Button Width="300" Height="30" Content="Человек vs Человек" Command="{Binding StartHumanVsHumanCommand}" Foreground="Black" />
                 <Button Width="300" Height="30" Content="Человек vs ИИ" Command="{Binding StartHumanVsAICommand}" Foreground="Black" />
+ 
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+                    <TextBlock Text="IP Сервера:" VerticalAlignment="Center" Foreground="Black" FontWeight="Bold"/>
+                    <TextBox Text="{Binding ServerIp}" Width="200" Height="30" Watermark="localhost" Foreground="White"/>
+                </StackPanel>
+
                 <Button Width="300" Height="30" Content="Играть Онлайн" Command="{Binding OpenOnlineLobbyCommand}" Foreground="Black" />
                 <Button Width="300" Height="30" Content="Выход" Command="{Binding ExitCommand}" Foreground="Black" />
             </StackPanel>
@@ -132,6 +139,7 @@
                                     Background="#222"
                                     Foreground="White"
                                     BorderBrush="#555"/>
+                            
                             <Button Content="ПРИСОЕДИНИТЬСЯ" 
                                     Background="#6C757D"
                                     Foreground="White"
@@ -160,7 +168,7 @@
         </Viewbox>
 
         <Viewbox Grid.Row="1" Stretch="Uniform">
-            <Viewbox.IsVisible>
+             <Viewbox.IsVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                     <Binding Path="!IsStartScreen"/>
                     <Binding Path="!IsLobbyScreen"/>
