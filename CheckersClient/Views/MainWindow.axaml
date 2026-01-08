@@ -98,10 +98,9 @@
                 BorderBrush="#444"
                 BorderThickness="2"
                 IsVisible="{Binding IsLobbyScreen}">
-            <!-- содержимое без изменений -->
         </Border>
 
-        <!-- GAME OVER -->
+        <!-- Конец игры -->
         <Viewbox Grid.Row="1" Stretch="Uniform" IsVisible="{Binding IsGameOver}">
             <StackPanel>
                 <Button Width="300"
