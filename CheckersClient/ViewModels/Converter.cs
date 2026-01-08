@@ -22,6 +22,30 @@ public class IndexToArrayConverter : IMultiValueConverter
         => throw new NotSupportedException();
 }
 
+//  КОНВЕРТЕР ОБВОДКИ ВЫБРАННОЙ ШАШКИ
+public class SelectedPieceStrokeConverter : IMultiValueConverter
+{
+    public static readonly SelectedPieceStrokeConverter Instance = new();
+
+    public object Convert(IList<object> values, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (values.Count < 3)
+            return Brushes.Transparent;
+
+        var selected = values[0] as (int row, int col)?;
+        if (selected == null || values[1] is not int rowIndex || values[2] is not int colIndex)
+            return Brushes.Transparent;
+
+        return selected.Value.row == rowIndex && selected.Value.col == colIndex
+            ? Brushes.Red    // цвет обводки выбранной шашки
+            : Brushes.Transparent;
+    }
+
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+
 //  КОНВЕРТЕР ЦВЕТА КЛЕТОК 
 public class CellBackgroundConverter : IMultiValueConverter
 {
