@@ -49,6 +49,10 @@ public partial class GameViewModel : ObservableObject
     [ObservableProperty]
     private bool _isCreatingPrivate = false;
 
+    // Новое свойство — видимость окна с правилами
+    [ObservableProperty]
+    private bool _isRulesVisible = false;
+
     public ObservableCollection<GameRoomDto> Lobbies { get; } = new();
 
     //  СОСТОЯНИЕ КОНЦА ИГРЫ 
@@ -64,8 +68,14 @@ public partial class GameViewModel : ObservableObject
     // 
 
     //  СЕТЬ КЛЕТОК ДЛЯ UI 
-    private IReadOnlyList<CellViewModel> _grid;
+    private IReadOnlyList<CellViewModel> _grid = Array.Empty<CellViewModel>();  // ← ИСПРАВЛЕНИЕ CS8618
     public IReadOnlyList<CellViewModel> Grid => _grid;
+
+    // Метод переключения видимости правил
+    private void ToggleRules()
+    {
+    IsRulesVisible = !IsRulesVisible;
+    }
 
     //  КОМАНДЫ ДЛЯ UI 
     public ICommand CellCommand { get; }
@@ -82,6 +92,10 @@ public partial class GameViewModel : ObservableObject
 
     public ICommand ReturnToMenuCommand { get; }
     public ICommand ExitCommand { get; }
+
+    // Новая команда для открытия/закрытия подсказки
+    public ICommand ToggleRulesCommand { get; }
+    
 
     //  ИНИЦИАЛИЗАЦИЯ VIEWMODEL 
     public GameViewModel()
@@ -104,6 +118,7 @@ public partial class GameViewModel : ObservableObject
 
         ReturnToMenuCommand = new RelayCommand(ReturnToMenu);
         ExitCommand = new RelayCommand(ExitApp);
+        ToggleRulesCommand = new RelayCommand(ToggleRules);
     }
 
     //  СТАРТ НОВОЙ ЛОКАЛЬНОЙ ИГРЫ 
@@ -246,7 +261,15 @@ public partial class GameViewModel : ObservableObject
         IsLobbyScreen = false;
         IsGameOver = false;
         Status = "Выберите режим";
-        _onlineClient = null;
+        _chainPiece = null;
+
+        if (_onlineClient != null)
+        {
+            // Исправление CS1061: Вызов нового метода DisconnectAsync
+            _onlineClient.DisconnectAsync();  // Асинхронно, без await, чтобы не блокировать UI
+            _onlineClient = null;
+            _isOnlineGameActive = false;
+        }
     }
 
     //  ВЫХОД ИЗ ПРИЛОЖЕНИЯ 
