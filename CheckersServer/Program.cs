@@ -17,6 +17,10 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseCors();
+
+// Привязываем сервер к 0.0.0.0:5000 для доступа из локальной сети
+app.Urls.Add("http://0.0.0.0:5000");
+
 app.MapHub<GameHub>("/gamehub");
 
 app.Run();
