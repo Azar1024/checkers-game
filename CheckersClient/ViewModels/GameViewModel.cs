@@ -49,6 +49,10 @@ public partial class GameViewModel : ObservableObject
     [ObservableProperty]
     private bool _isCreatingPrivate = false;
 
+    // Новое свойство — видимость окна с правилами
+    [ObservableProperty]
+    private bool _isRulesVisible = false;
+
     public ObservableCollection<GameRoomDto> Lobbies { get; } = new();
 
     //  СОСТОЯНИЕ КОНЦА ИГРЫ 
@@ -67,6 +71,12 @@ public partial class GameViewModel : ObservableObject
     private IReadOnlyList<CellViewModel> _grid = Array.Empty<CellViewModel>();  // ← ИСПРАВЛЕНИЕ CS8618
     public IReadOnlyList<CellViewModel> Grid => _grid;
 
+    // Метод переключения видимости правил
+    private void ToggleRules()
+    {
+    IsRulesVisible = !IsRulesVisible;
+    }
+
     //  КОМАНДЫ ДЛЯ UI 
     public ICommand CellCommand { get; }
     public ICommand StartHumanVsHumanCommand { get; }
@@ -82,6 +92,9 @@ public partial class GameViewModel : ObservableObject
 
     public ICommand ReturnToMenuCommand { get; }
     public ICommand ExitCommand { get; }
+
+    // Новая команда для открытия/закрытия подсказки
+    public ICommand ToggleRulesCommand { get; }
     
 
     //  ИНИЦИАЛИЗАЦИЯ VIEWMODEL 
@@ -105,6 +118,7 @@ public partial class GameViewModel : ObservableObject
 
         ReturnToMenuCommand = new RelayCommand(ReturnToMenu);
         ExitCommand = new RelayCommand(ExitApp);
+        ToggleRulesCommand = new RelayCommand(ToggleRules);
     }
 
     //  СТАРТ НОВОЙ ЛОКАЛЬНОЙ ИГРЫ 

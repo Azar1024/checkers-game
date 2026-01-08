@@ -32,7 +32,7 @@
                    HorizontalAlignment="Center"
                    Margin="0,0,0,15"/>
 
-        <!-- Кнопка "В главное меню" — видна во время активной игры в любом режиме -->
+        <!-- Кнопка "В главное меню" — видна только во время активной игры -->
         <Button Grid.Row="0"
                 Content="← В главное меню"
                 Command="{Binding ReturnToMenuCommand}"
@@ -40,6 +40,28 @@
                 Foreground="#AAA"
                 HorizontalAlignment="Left"
                 Margin="0,0,0,15">
+            <Button.IsVisible>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="!IsStartScreen"/>
+                    <Binding Path="!IsLobbyScreen"/>
+                    <Binding Path="!IsGameOver"/>
+                </MultiBinding>
+            </Button.IsVisible>
+        </Button>
+
+        <!-- Кнопка с вопросом — видна только во время активной игры -->
+        <Button Grid.Row="0"
+                Content="?"
+                FontSize="20"
+                FontWeight="Bold"
+                Width="40" Height="40"
+                Background="#007BFF"
+                Foreground="White"
+                CornerRadius="20"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="0,0,20,0"
+                Command="{Binding ToggleRulesCommand}">
             <Button.IsVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                     <Binding Path="!IsStartScreen"/>
@@ -60,115 +82,115 @@
         </Viewbox>
 
         <Border Grid.Row="1" 
-            Background="#F0222222" 
-            CornerRadius="15" 
-            Padding="25" 
-            BorderBrush="#444" 
-            BorderThickness="2"
-            IsVisible="{Binding IsLobbyScreen}">
-        <Grid RowDefinitions="Auto, Auto, *, Auto">
-            
-            <TextBlock Grid.Row="0" 
-                    Text="ОНЛАЙН ЛОББИ" 
-                    FontSize="24" 
-                    FontWeight="Bold"
-                    Foreground="White" 
-                    HorizontalAlignment="Center" 
-                    Margin="0,0,0,5"/>
-            
-            <TextBlock Grid.Row="1" 
-                    Text="{Binding LobbyStatus}" 
-                    FontSize="14" 
-                    Foreground="#FFCC00" 
-                    HorizontalAlignment="Center" 
-                    Margin="0,0,0,15"
-                    TextWrapping="Wrap"/>
+                Background="#F0222222" 
+                CornerRadius="15" 
+                Padding="25" 
+                BorderBrush="#444" 
+                BorderThickness="2"
+                IsVisible="{Binding IsLobbyScreen}">
+            <Grid RowDefinitions="Auto, Auto, *, Auto">
+                
+                <TextBlock Grid.Row="0" 
+                           Text="ОНЛАЙН ЛОББИ" 
+                           FontSize="24" 
+                           FontWeight="Bold"
+                           Foreground="White" 
+                           HorizontalAlignment="Center" 
+                           Margin="0,0,0,5"/>
+                
+                <TextBlock Grid.Row="1" 
+                           Text="{Binding LobbyStatus}" 
+                           FontSize="14" 
+                           Foreground="#FFCC00" 
+                           HorizontalAlignment="Center" 
+                           Margin="0,0,0,15"
+                           TextWrapping="Wrap"/>
 
-            <Grid Grid.Row="2" ColumnDefinitions="*, 220">
-                <DockPanel Grid.Column="0" Margin="0,0,15,0">
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
-                        <TextBlock Text="Доступные игры" Foreground="White" FontSize="16" VerticalAlignment="Center"/>
-                        <Button Content="Обновить ↻" 
-                                Command="{Binding RefreshLobbiesCommand}" 
-                                Background="#444" 
-                                Foreground="White" 
-                                Padding="10,2"/>
+                <Grid Grid.Row="2" ColumnDefinitions="*, 220">
+                    <DockPanel Grid.Column="0" Margin="0,0,15,0">
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
+                            <TextBlock Text="Доступные игры" Foreground="White" FontSize="16" VerticalAlignment="Center"/>
+                            <Button Content="Обновить ↻" 
+                                    Command="{Binding RefreshLobbiesCommand}" 
+                                    Background="#444" 
+                                    Foreground="White" 
+                                    Padding="10,2"/>
+                        </StackPanel>
+                        
+                        <ScrollViewer>
+                            <ListBox ItemsSource="{Binding Lobbies}" 
+                                     Background="#333" 
+                                     BorderBrush="#555"
+                                     BorderThickness="1"
+                                     CornerRadius="5"
+                                     MinHeight="200">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="#444" BorderThickness="0,0,0,1" Padding="8">
+                                            <Grid ColumnDefinitions="*, Auto">
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding Id, StringFormat='ID: {0}'}" FontSize="12" Foreground="#AAA"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="1" 
+                                                        Content="Войти" 
+                                                        Background="#28A745"
+                                                        Foreground="White"
+                                                        FontWeight="Bold"
+                                                        Command="{Binding $parent[Window].DataContext.JoinSelectedGameCommand}"
+                                                        CommandParameter="{Binding Id}"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </ScrollViewer>
+                    </DockPanel>
+
+                    <StackPanel Grid.Column="1" Spacing="15">
+                        <Border Background="#333" Padding="15" CornerRadius="8" BorderBrush="#555" BorderThickness="1">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="Создать новую" Foreground="White" FontWeight="Bold"/>
+                                <CheckBox Content="Приватная игра" 
+                                          Foreground="White"
+                                          IsChecked="{Binding IsCreatingPrivate}"/>
+                                <Button Content="СОЗДАТЬ" 
+                                        Background="#007BFF"
+                                        Foreground="White"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Center"
+                                        Command="{Binding CreateGameCommand}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#333" Padding="15" CornerRadius="8" BorderBrush="#555" BorderThickness="1">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="Вход по коду" Foreground="White" FontWeight="Bold"/>
+                                <TextBox Text="{Binding JoinGameId}" 
+                                         Watermark="Введите Game ID"
+                                         Background="#222"
+                                         Foreground="White"
+                                         BorderBrush="#555"/>
+                                <Button Content="ПРИСОЕДИНИТЬСЯ" 
+                                        Background="#6C757D"
+                                        Foreground="White"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Center"
+                                        Command="{Binding JoinGameCommand}"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
-                    
-                    <ScrollViewer>
-                        <ListBox ItemsSource="{Binding Lobbies}" 
-                                Background="#333" 
-                                BorderBrush="#555"
-                                BorderThickness="1"
-                                CornerRadius="5"
-                                MinHeight="200">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Border BorderBrush="#444" BorderThickness="0,0,0,1" Padding="8">
-                                        <Grid ColumnDefinitions="*, Auto">
-                                            <StackPanel VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="SemiBold"/>
-                                                <TextBlock Text="{Binding Id, StringFormat='ID: {0}'}" FontSize="12" Foreground="#AAA"/>
-                                            </StackPanel>
-                                            <Button Grid.Column="1" 
-                                                    Content="Войти" 
-                                                    Background="#28A745"
-                                                    Foreground="White"
-                                                    FontWeight="Bold"
-                                                    Command="{Binding $parent[Window].DataContext.JoinSelectedGameCommand}"
-                                                    CommandParameter="{Binding Id}"/>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </ScrollViewer>
-                </DockPanel>
+                </Grid>
 
-                <StackPanel Grid.Column="1" Spacing="15">
-                    <Border Background="#333" Padding="15" CornerRadius="8" BorderBrush="#555" BorderThickness="1">
-                        <StackPanel Spacing="10">
-                            <TextBlock Text="Создать новую" Foreground="White" FontWeight="Bold"/>
-                            <CheckBox Content="Приватная игра" 
-                                    Foreground="White"
-                                    IsChecked="{Binding IsCreatingPrivate}"/>
-                            <Button Content="СОЗДАТЬ" 
-                                    Background="#007BFF"
-                                    Foreground="White"
-                                    HorizontalAlignment="Stretch"
-                                    HorizontalContentAlignment="Center"
-                                    Command="{Binding CreateGameCommand}"/>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Background="#333" Padding="15" CornerRadius="8" BorderBrush="#555" BorderThickness="1">
-                        <StackPanel Spacing="10">
-                            <TextBlock Text="Вход по коду" Foreground="White" FontWeight="Bold"/>
-                            <TextBox Text="{Binding JoinGameId}" 
-                                    Watermark="Введите Game ID"
-                                    Background="#222"
-                                    Foreground="White"
-                                    BorderBrush="#555"/>
-                            <Button Content="ПРИСОЕДИНИТЬСЯ" 
-                                    Background="#6C757D"
-                                    Foreground="White"
-                                    HorizontalAlignment="Stretch"
-                                    HorizontalContentAlignment="Center"
-                                    Command="{Binding JoinGameCommand}"/>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
+                <Button Grid.Row="3" 
+                        Content="← В ГЛАВНОЕ МЕНЮ" 
+                        Command="{Binding ReturnToMenuCommand}" 
+                        Background="Transparent"
+                        Foreground="#AAA"
+                        HorizontalAlignment="Left"
+                        Margin="0,15,0,0"/>
             </Grid>
-
-            <Button Grid.Row="3" 
-                    Content="← В ГЛАВНОЕ МЕНЮ" 
-                    Command="{Binding ReturnToMenuCommand}" 
-                    Background="Transparent"
-                    Foreground="#AAA"
-                    HorizontalAlignment="Left"
-                    Margin="0,15,0,0"/>
-        </Grid>
-    </Border>
+        </Border>
 
         <Viewbox Grid.Row="1" Stretch="Uniform" IsVisible="{Binding IsGameOver}">
             <StackPanel Spacing="20" Orientation="Vertical">
@@ -230,5 +252,62 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </Viewbox>
+
+        <!-- Окно с правилами — поверх всего -->
+        <Panel Background="#CC000000"
+               IsVisible="{Binding IsRulesVisible}"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center">
+            <Panel.ZIndex>100</Panel.ZIndex>
+
+            <Border Background="#333"
+                    Padding="30"
+                    CornerRadius="15"
+                    BorderBrush="#555"
+                    BorderThickness="2"
+                    MaxWidth="700">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Правила русских шашек"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               HorizontalAlignment="Center"/>
+
+                    <StackPanel Spacing="10">
+    <TextBlock Foreground="White" FontSize="14">
+        <Run Text="• " FontWeight="Bold"/>
+        <Run Text="Обычные шашки ходят по диагонали вперёд на одну клетку."/>
+    </TextBlock>
+    <TextBlock Foreground="White" FontSize="14">
+        <Run Text="• " FontWeight="Bold"/>
+        <Run Text="Бить можно вперёд и назад. Бить обязательно!"/>
+    </TextBlock>
+    <TextBlock Foreground="White" FontSize="14">
+        <Run Text="• " FontWeight="Bold"/>
+        <Run Text="Если после взятия можно бить дальше той же шашкой — бить продолжать."/>
+    </TextBlock>
+    <TextBlock Foreground="White" FontSize="14">
+        <Run Text="• " FontWeight="Bold"/>
+        <Run Text="Дойдя до последней горизонтали, шашка становится дамкой."/>
+    </TextBlock>
+    <TextBlock Foreground="White" FontSize="14">
+        <Run Text="• " FontWeight="Bold"/>
+        <Run Text="Дамка ходит и бьёт по диагонали на любое расстояние."/>
+    </TextBlock>
+    <TextBlock Foreground="White" FontSize="14">
+        <Run Text="• " FontWeight="Bold"/>
+        <Run Text="Победа — уничтожить все шашки противника или лишить его ходов."/>
+    </TextBlock>
+</StackPanel>
+
+                    <Button Content="Закрыть"
+                            Command="{Binding ToggleRulesCommand}"
+                            Background="#DC3545"
+                            Foreground="White"
+                            HorizontalAlignment="Center"
+                            Padding="15,8"/>
+                </StackPanel>
+            </Border>
+        </Panel>
     </Grid>
 </Window>
