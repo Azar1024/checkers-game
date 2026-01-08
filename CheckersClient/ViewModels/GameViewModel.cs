@@ -64,7 +64,7 @@ public partial class GameViewModel : ObservableObject
     // 
 
     //  СЕТЬ КЛЕТОК ДЛЯ UI 
-    private IReadOnlyList<CellViewModel> _grid;
+    private IReadOnlyList<CellViewModel> _grid = Array.Empty<CellViewModel>();  // ← ИСПРАВЛЕНИЕ CS8618
     public IReadOnlyList<CellViewModel> Grid => _grid;
 
     //  КОМАНДЫ ДЛЯ UI 
@@ -82,6 +82,7 @@ public partial class GameViewModel : ObservableObject
 
     public ICommand ReturnToMenuCommand { get; }
     public ICommand ExitCommand { get; }
+    
 
     //  ИНИЦИАЛИЗАЦИЯ VIEWMODEL 
     public GameViewModel()
@@ -246,7 +247,15 @@ public partial class GameViewModel : ObservableObject
         IsLobbyScreen = false;
         IsGameOver = false;
         Status = "Выберите режим";
-        _onlineClient = null;
+        _chainPiece = null;
+
+        if (_onlineClient != null)
+        {
+            // Исправление CS1061: Вызов нового метода DisconnectAsync
+            _onlineClient.DisconnectAsync();  // Асинхронно, без await, чтобы не блокировать UI
+            _onlineClient = null;
+            _isOnlineGameActive = false;
+        }
     }
 
     //  ВЫХОД ИЗ ПРИЛОЖЕНИЯ 

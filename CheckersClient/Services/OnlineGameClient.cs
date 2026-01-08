@@ -48,7 +48,7 @@ public class OnlineGameClient
             OnMoveReceived?.Invoke(move);
         });
 
-        // Прямое получение списка (используется при NotifyLobbyUpdate старой версии)
+        // Получение списка (используется при NotifyLobbyUpdate старой версии)
         _hubConnection.On<List<GameRoomDto>>("LobbyListUpdated", (lobbies) =>
         {
             OnLobbyListUpdated?.Invoke(lobbies);
@@ -110,5 +110,15 @@ public class OnlineGameClient
     {
         if (_hubConnection != null && _gameId != null)
             await _hubConnection.InvokeAsync("SendMove", _gameId, move);
+    }
+
+    // ← НОВЫЙ МЕТОД ДЛЯ ОТКЛЮЧЕНИЯ (ИСПРАВЛЕНИЕ CS1061)
+    public async Task DisconnectAsync()
+    {
+        if (_hubConnection != null)
+        {
+            await _hubConnection.StopAsync();
+            _hubConnection = null;
+        }
     }
 }

@@ -32,6 +32,23 @@
                    HorizontalAlignment="Center"
                    Margin="0,0,0,15"/>
 
+        <!-- Кнопка "В главное меню" — видна во время активной игры в любом режиме -->
+        <Button Grid.Row="0"
+                Content="← В главное меню"
+                Command="{Binding ReturnToMenuCommand}"
+                Background="Transparent"
+                Foreground="#AAA"
+                HorizontalAlignment="Left"
+                Margin="0,0,0,15">
+            <Button.IsVisible>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="!IsStartScreen"/>
+                    <Binding Path="!IsLobbyScreen"/>
+                    <Binding Path="!IsGameOver"/>
+                </MultiBinding>
+            </Button.IsVisible>
+        </Button>
+
         <Viewbox Grid.Row="1" Stretch="Uniform" IsVisible="{Binding IsStartScreen}">
             <StackPanel Spacing="20" Orientation="Vertical">
                 <TextBlock Text="Русские шашки" FontSize="25" Foreground="Black" HorizontalAlignment="Center"/>
